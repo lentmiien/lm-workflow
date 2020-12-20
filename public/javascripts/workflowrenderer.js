@@ -4,9 +4,9 @@ const svgelement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 outelement.append(svgelement);
 let process_id = document.getElementById("workflow_select").value;
 
-function ShowWworkflow() {
+function ShowWorkflow() {
   process_id = document.getElementById("workflow_select").value;
-  outelement.innerHTML = ''; // Clear previous data
+  svgelement.innerHTML = ''; // Clear previous data
   DisplayWorkflow();
 }
 
@@ -227,8 +227,8 @@ function DisplayWorkflow() {
         let midy1 = iolist[nn.in_id].y + 15;
         while (hlane.indexOf(midy1) >= 0) { midy1 -= 5; }
         hlane.push(midy1);
-        let midy2 = iolist[nn.out_id].y - 15;
-        while (hlane.indexOf(midy2) >= 0) { midy2 += 5; }
+        let midy2 = iolist[nn.out_id].y - 5;
+        while (hlane.indexOf(midy2) >= 0) { midy2 -= 5; }
         hlane.push(midy2);
         let midx = Math.floor(iolist[nn.in_id].x / (lanewidth + hspacing)) * (lanewidth + hspacing) + lanewidth + 5;
         if (iolist[nn.in_id].x < iolist[nn.out_id].x + (lanewidth / 2)) {

@@ -15,7 +15,7 @@ block content
             each member in output.groups[key].members
               span= member
               br
-  select#workflow_select.form-control(name="workflow_select", onchange="ShowWworkflow()")
+  select#workflow_select.form-control(name="workflow_select", onchange="ShowWorkflow()")
     each key in Object.keys(output.processes)
       option(value=key)= output.processes[key].processName
   #workflow
