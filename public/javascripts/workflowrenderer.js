@@ -48,7 +48,9 @@ function DisplayWorkflow() {
   svgelement.append(defs);
 
   // Draw lanes
-  const lanecolor = ['#afa', '#afe'];
+  const lanecolor = {
+    '顧客': '#eeeeee'
+  };
   for (let i = 0; i < lanes.length; i++) {
     const g_lane = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     // Background
@@ -57,7 +59,7 @@ function DisplayWorkflow() {
     lanebackground.setAttributeNS(null, 'y', 0);
     lanebackground.setAttributeNS(null, 'width', lanewidth);
     lanebackground.setAttributeNS(null, 'height', height);
-    lanebackground.setAttributeNS(null, 'fill', lanecolor[i%2]);
+    lanebackground.setAttributeNS(null, 'fill', lanecolor[lanes[i]] ? lanecolor[lanes[i]] : '#ffffaa');
     g_lane.append(lanebackground);
     const vlanebackground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     vlanebackground.setAttributeNS(null, 'x', i * (lanewidth + hspacing) + lanewidth);
@@ -93,7 +95,7 @@ function DisplayWorkflow() {
     actionnodebackground.setAttributeNS(null, 'ry', 10);
     actionnodebackground.setAttributeNS(null, 'width', lanewidth - 10);
     actionnodebackground.setAttributeNS(null, 'height', actionheight);
-    actionnodebackground.setAttributeNS(null, 'fill', 'steelblue');
+    actionnodebackground.setAttributeNS(null, 'fill', lanecolor[an.processedby] ? lanecolor[an.processedby] : 'orange');
     actionnodebackground.setAttributeNS(null, 'stroke', 'black');
     g_actionnode.append(actionnodebackground);
     // Title
