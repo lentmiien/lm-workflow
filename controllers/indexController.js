@@ -18,7 +18,7 @@ const structure = [
   ['gid', 'name'],
   ['user_id', 'group_id'],
   ['pid', 'process', 'owner', 'manager', 'status', 'comment'],
-  ['anid', 'belongto_pid', 'content_aid', 'in_id', 'out_ids', 'processedby'],
+  ['anid', 'belongto_pid', 'content_pid', 'content_aid', 'in_id', 'out_ids', 'processedby'],
   ['nid', 'belongto_pid', 'in_id', 'out_id'],
   ['aid', 'action', 'content_tids', 'outputs'],
   ['tid', 'task', 'outputs']
@@ -110,12 +110,22 @@ exports.index = async (req, res) => {
       });
     });
     data['ActionNodes'].forEach(an => {
-      output['processes'][an.belongto_pid].actionNodes.push({
-        action: tmp_actions[an.content_aid],
-        in_id: an.in_id,
-        out_ids: an.out_ids,
-        processedby: output['groups'][an.processedby].groupName
-      });
+      if (tmp_actions[an.content_aid]) {
+        output['processes'][an.belongto_pid].actionNodes.push({
+          action: tmp_actions[an.content_aid],
+          in_id: an.in_id,
+          out_ids: an.out_ids,
+          processedby: output['groups'][an.processedby].groupName
+        });
+      } else {
+        output['processes'][an.belongto_pid].actionNodes.push({
+          process: output['processes'][an.content_pid],
+          pid: an.content_pid,
+          in_id: an.in_id,
+          out_ids: an.out_ids,
+          processedby: 'Sub process'
+        });
+      }
     });
     data['Network'].forEach(n => {
       output['processes'][n.belongto_pid].network.push({

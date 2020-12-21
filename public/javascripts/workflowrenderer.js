@@ -49,7 +49,8 @@ function DisplayWorkflow() {
 
   // Draw lanes
   const lanecolor = {
-    '顧客': '#eeeeee'
+    '顧客': '#eeeeee',
+    'Sub process': '#bb88ee'
   };
   for (let i = 0; i < lanes.length; i++) {
     const g_lane = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -103,14 +104,22 @@ function DisplayWorkflow() {
     actionnodebacktitle.setAttributeNS(null, 'x', (lanenumber * (lanewidth + hspacing)) + (lanewidth / 2));
     actionnodebacktitle.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + 20);
     actionnodebacktitle.setAttributeNS(null, 'text-anchor', 'middle');
-    actionnodebacktitle.textContent = an.action.action;
+    if (an.action) {
+      actionnodebacktitle.textContent = an.action.action;
+    } else {
+      actionnodebacktitle.textContent = an.process.processName;
+    }
     g_actionnode.append(actionnodebacktitle);
     // Tasks
     const actiontaskstext = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     actiontaskstext.setAttributeNS(null, 'x', (lanenumber * (lanewidth + hspacing)) + (lanewidth / 2));
     actiontaskstext.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + 44);
     actiontaskstext.setAttributeNS(null, 'text-anchor', 'middle');
-    actiontaskstext.textContent = `${an.action.content.length} tasks`;
+    if (an.action) {
+      actiontaskstext.textContent = `${an.action.content.length} tasks`;
+    } else {
+      actiontaskstext.textContent = `Show process`;
+    }
     const actiontasksrect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     actiontasksrect.setAttributeNS(null, 'x', lanenumber * (lanewidth + hspacing) + 10);
     actiontasksrect.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + 26);
@@ -118,16 +127,20 @@ function DisplayWorkflow() {
     actiontasksrect.setAttributeNS(null, 'height', 24);
     actiontasksrect.setAttributeNS(null, 'fill', 'rgba(0,0,0,0.15)');
     actiontasksrect.setAttributeNS(null, 'stroke', 'black');
-    let taskstring = '';
-    an.action.content.forEach(task => {
-      if (taskstring.length == 0) {
-        taskstring += task.task;
-      } else {
-        taskstring += '|' + task.task;
-      }
-    });
-    actiontasksrect.setAttributeNS(null, 'onmouseenter', `DisplayHover(${lanenumber * (lanewidth + hspacing) + (lanewidth / 2)},${cnt * (actionheight + vspacing) + header + 65},"${taskstring}")`);
-    actiontasksrect.setAttributeNS(null, 'onmouseleave', `HideHover()`);
+    if (an.action) {
+      let taskstring = '';
+      an.action.content.forEach(task => {
+        if (taskstring.length == 0) {
+          taskstring += task.task;
+        } else {
+          taskstring += '|' + task.task;
+        }
+      });
+      actiontasksrect.setAttributeNS(null, 'onmouseenter', `DisplayHover(${lanenumber * (lanewidth + hspacing) + (lanewidth / 2)},${cnt * (actionheight + vspacing) + header + 65},"${taskstring}")`);
+      actiontasksrect.setAttributeNS(null, 'onmouseleave', `HideHover()`);
+    } else {
+      actiontasksrect.setAttributeNS(null, 'onclick', `ShowProcess('${an.pid}')`);
+    }
     g_actionnode.append(actiontaskstext);
     g_actionnode.append(actiontasksrect);
     // Inputs
@@ -144,6 +157,7 @@ function DisplayWorkflow() {
     // Outputs
     const outs = an.out_ids.split(',');
     const labels = outs.length > 1;
+    const many_labels = outs.length > 2;
     outs.forEach((id, c) => {
       iolist[id] = {
         x: lanenumber * (lanewidth + hspacing) + (c + 1) * (lanewidth / (outs.length + 1)),
@@ -159,7 +173,7 @@ function DisplayWorkflow() {
         const textcontent = an.action.outputs.split(',');
         const outlabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         outlabel.setAttributeNS(null, 'x', lanenumber * (lanewidth + hspacing) + (c + 1) * (lanewidth / (outs.length + 1)));
-        outlabel.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + actionheight - 10);
+        outlabel.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + actionheight - 10 - (many_labels ? ((c%2) * 15) : 0));
         outlabel.setAttributeNS(null, 'text-anchor', 'middle');
         outlabel.textContent = textcontent[c];
         g_actionnode.append(outlabel);
@@ -190,8 +204,8 @@ function DisplayWorkflow() {
     } else {
       if (iolist[nn.out_id].y - iolist[nn.in_id].y > 0 && iolist[nn.out_id].y - iolist[nn.in_id].y <= vspacing + 1) {
         // 3-segment line
-        let midy = iolist[nn.in_id].y + 15;
-        while (hlane.indexOf(midy) >= 0) { midy -= 5; }
+        let midy = iolist[nn.in_id].y + 5;
+        while (hlane.indexOf(midy) >= 0) { midy += 2; }
         hlane.push(midy);
 
         // Segment #1
@@ -226,18 +240,18 @@ function DisplayWorkflow() {
         svgelement.append(nnArrow);
       } else {
         // 5-segment line
-        let midy1 = iolist[nn.in_id].y + 15;
-        while (hlane.indexOf(midy1) >= 0) { midy1 -= 5; }
+        let midy1 = iolist[nn.in_id].y + 5;
+        while (hlane.indexOf(midy1) >= 0) { midy1 += 2; }
         hlane.push(midy1);
         let midy2 = iolist[nn.out_id].y - 5;
-        while (hlane.indexOf(midy2) >= 0) { midy2 -= 5; }
+        while (hlane.indexOf(midy2) >= 0) { midy2 -= 2; }
         hlane.push(midy2);
         let midx = Math.floor(iolist[nn.in_id].x / (lanewidth + hspacing)) * (lanewidth + hspacing) + lanewidth + 5;
         if (iolist[nn.in_id].x < iolist[nn.out_id].x + (lanewidth / 2)) {
-          while (vlane.indexOf(midx) >= 0) { midx += 5; }
+          while (vlane.indexOf(midx) >= 0) { midx += 2; }
         } else {
           midx -= lanewidth + 10;
-          while (vlane.indexOf(midx) >= 0) { midx -= 5; }
+          while (vlane.indexOf(midx) >= 0) { midx -= 2; }
         }
         vlane.push(midx);
 
@@ -345,72 +359,9 @@ function HideHover() {
   element.parentElement.removeChild(element);
 }
 
-/*
-{
-  "processName": "GCS課出社（鍵付）",
-  "processOwner": "横山",
-  "processManager": "横山",
-  "processStatus": "実行中",
-  "processComment": "社員の出社",
-  "actionNodes": [
-    {
-      "action": {
-        "action": "事務所に入る（鍵）",
-        "content": [
-          {
-            "task": "鍵を開ける",
-            "outputs": "OK"
-          },
-          {
-            "task": "ドアを開ける",
-            "outputs": "OK"
-          },
-          {
-            "task": "事務所に入る",
-            "outputs": "OK,ERROR"
-          },
-          {
-            "task": "ドアを閉める",
-            "outputs": "OK"
-          }
-        ],
-        "outputs": "OK"
-      },
-      "in_id": "1608298953383",
-      "out_ids": "1608298991245",
-      "processedby": "GCS課社員"
-    },
-    ...other nodes...
-  ],
-  "network": [
-    {
-      "in_id": "Start",
-      "out_id": "1608298953383"
-    },
-    {
-      "in_id": "1608298991245",
-      "out_id": "1608298959405"
-    },
-    {
-      "in_id": "1608298997648",
-      "out_id": "1608298967155"
-    },
-    {
-      "in_id": "1608299004373",
-      "out_id": "1608298959405"
-    },
-    {
-      "in_id": "1608299029482",
-      "out_id": "1608298973582"
-    },
-    {
-      "in_id": "1608299038696",
-      "out_id": "End"
-    }
-  ]
+function ShowProcess(pid) {
+  document.getElementById('workflow_select').value = pid;
+  ShowWorkflow();
 }
-*/
-
-///////// DEBUG /////////////
 
 DisplayWorkflow();
