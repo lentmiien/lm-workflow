@@ -123,7 +123,7 @@ exports.index = async (req, res) => {
           pid: an.content_pid,
           in_id: an.in_id,
           out_ids: an.out_ids,
-          processedby: 'Sub process'
+          processedby: output['processes'][an.content_pid].actionNodes[0].processedby
         });
       }
     });
