@@ -22,11 +22,6 @@ block content
           each key in Object.keys(output.processes)
             if output.processes[key].processStatus == "develop"
               option(value=key)= output.processes[key].processName
-        .d-flex.justify-content-around
-          .p-2
-            button.btn.btn-primary Details
-          .p-2
-            button.btn.btn-warning Edit
       .col.active
         h2 Active
         select#workflow_select_active.form-control(name="workflow_select_active", onchange="ShowWorkflow('active')")
@@ -34,11 +29,6 @@ block content
           each key in Object.keys(output.processes)
             if output.processes[key].processStatus == "active"
               option(value=key)= output.processes[key].processName
-        .d-flex.justify-content-around
-          .p-2
-            button.btn.btn-primary Details
-          .p-2
-            button.btn.btn-warning Edit
       .col.suspended
         h2 Suspended
         select#workflow_select_suspended.form-control(name="workflow_select_suspended", onchange="ShowWorkflow('suspended')")
@@ -46,11 +36,6 @@ block content
           each key in Object.keys(output.processes)
             if output.processes[key].processStatus == "suspended"
               option(value=key)= output.processes[key].processName
-        .d-flex.justify-content-around
-          .p-2
-            button.btn.btn-primary Details
-          .p-2
-            button.btn.btn-warning Edit
       .col.retired
         h2 Retired
         select#workflow_select_retired.form-control(name="workflow_select_retired", onchange="ShowWorkflow('retired')")
@@ -58,13 +43,18 @@ block content
           each key in Object.keys(output.processes)
             if output.processes[key].processStatus == "retired"
               option(value=key)= output.processes[key].processName
-        .d-flex.justify-content-around
-          .p-2
-            button.btn.btn-primary Details
-          .p-2
-            button.btn.btn-warning Edit
-  #workflow
-    h2#workflow_title
+  .row
+    .col
+      #openid.hidden
+      .d-flex.justify-content-around
+        .p-2
+          button.btn.btn-primary(onclick="OpenDetails()") Details
+        .p-2
+          button.btn.btn-warning(onclick="OpenEdit()") Edit
+  .row
+    .col
+      #workflow
+        h2#workflow_title
   .hidden_
     pre#wfdata= JSON.stringify(output, null, 2)
     #history

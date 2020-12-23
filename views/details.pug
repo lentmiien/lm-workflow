@@ -1,6 +1,34 @@
 extends layout
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  .row
+    .col
+      h1= data['processes'][pid].processName
+      a.btn.btn-link(href="/") TOP
+      table.table.table-dark.table-striped
+        tbody
+          tr
+            th(span="row") Owner
+            td= data['processes'][pid].processOwner
+          tr
+            th(span="row") Manager
+            td= data['processes'][pid].processManager
+          tr
+            th(span="row") Status
+            td= data['processes'][pid].processStatus
+          tr
+            th(span="row") Comment
+            td= data['processes'][pid].processComment
+          tr
+            th(span="row") ID
+            td#pid= pid
+          tr
+            th(span="row") Actions
+            td
+              a.btn.btn-warning(href=`/editprocess?pid=${pid}`) Edit
+  .row
+    .col
+      #workflow
+  .hidden
+    pre#wfdata= JSON.stringify(data, null, 2)
+  script(src="/javascripts/workflowsimplerenderer.js")

@@ -1,58 +1,13 @@
 const data = JSON.parse(document.getElementById('wfdata').innerHTML);
 const outelement = document.getElementById('workflow');
-const title = document.getElementById('workflow_title');
 const svgelement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 outelement.append(svgelement);
-let process_id = '0';
-document.getElementById('histbtn').disabled = true;
-
-function ShowWorkflow(type) {
-  if (document.getElementById(`workflow_select_${type}`).value === "") {
-    return;
-  }
-
-  document.getElementById("history").innerHTML += `|${process_id}`;
-  document.getElementById('histbtn').disabled = false;
-  process_id = document.getElementById(`workflow_select_${type}`).value;
-  document.getElementById(`workflow_select_${type}`).value = '';
-  svgelement.innerHTML = ''; // Clear previous data
-  DisplayWorkflow();
-}
-
-function Back() {
-  const history = document.getElementById("history").innerHTML.split('|');
-  if (history.length > 1) {
-    const goto_hist = history.pop();
-    if (history.length == 1) {
-      document.getElementById('histbtn').disabled = true;
-    }
-    document.getElementById("history").innerHTML = history.join('|');
-    process_id = goto_hist;
-    title.innerText = '';
-    svgelement.innerHTML = ''; // Clear previous data
-    DisplayWorkflow();
-  }
-}
-
-function OpenDetails() {
-  const pid = document.getElementById('openid').innerHTML;
-  if (pid.length > 0) {
-    window.open(`/processdetails?pid=${pid}`, '_self')
-  }
-}
-
-function OpenEdit() {
-  const pid = document.getElementById('openid').innerHTML;
-  if (pid.length > 0) {
-    window.open(`/editprocess?pid=${pid}`, '_self')
-  }
-}
+let process_id = document.getElementById('pid').innerText;
 
 const lanewidth = 200;
 
 function DisplayWorkflow() {
   if (!data.processes[process_id]) {
-    document.getElementById('openid').innerHTML = "";
     return;
   }
 
@@ -64,9 +19,6 @@ function DisplayWorkflow() {
   const hspacing = 20;
   const hlane = [];
   const vlane = [];
-
-  document.getElementById('openid').innerHTML = process_id;
-  title.innerText = process.processName;
 
   process.actionNodes.forEach(an => {
     if (lanes.indexOf(an.processedby) == -1) {
@@ -185,7 +137,7 @@ function DisplayWorkflow() {
       actiontasksrect.setAttributeNS(null, 'onmouseenter', `DisplayHover(${lanenumber * (lanewidth + hspacing) + (lanewidth / 2)},${cnt * (actionheight + vspacing) + header + 65},"${taskstring}")`);
       actiontasksrect.setAttributeNS(null, 'onmouseleave', `HideHover()`);
     } else {
-      actiontasksrect.setAttributeNS(null, 'onclick', `ShowProcess('${an.pid}')`);
+      actiontasksrect.setAttributeNS(null, 'onclick', `window.open('/processdetails?pid=${an.pid}', '_self')`);
     }
     g_actionnode.append(actiontaskstext);
     g_actionnode.append(actiontasksrect);
@@ -403,14 +355,6 @@ function DisplayHover(x, y, content) {
 function HideHover() {
   const element = document.getElementById('Hover');
   element.parentElement.removeChild(element);
-}
-
-function ShowProcess(pid) {
-  document.getElementById("history").innerHTML += `|${process_id}`;
-  document.getElementById('histbtn').disabled = false;
-  process_id = pid;
-  svgelement.innerHTML = ''; // Clear previous data
-  DisplayWorkflow();
 }
 
 DisplayWorkflow();
