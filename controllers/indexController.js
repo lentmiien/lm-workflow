@@ -140,3 +140,16 @@ exports.update = async (req, res) => {
 
   res.redirect('/');
 };
+
+exports.processdetails = (req, res) => {
+  res.render('details', { data: output, pid: req.query.pid });
+};
+
+exports.processeditor = (req, res) => {
+  res.render('editor', { data: output, pid: req.query.pid });
+};
+
+exports.saveprocess = (req, res) => {
+  const process_id_to_save = 'dummy';
+  res.redirect(`/processdetails?pid=${process_id_to_save}`);
+};
