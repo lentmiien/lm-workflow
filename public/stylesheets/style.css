@@ -3,3 +3,20 @@ body {
   background-color: black;
   color: white;
 }
+
+.hidden {
+  display: none;
+}
+
+.development {
+  background-color: rgb(82, 73, 0);
+}
+.active {
+  background-color: rgb(0, 82, 14);
+}
+.suspended {
+  background-color: rgb(0, 8, 82);
+}
+.retired {
+  background-color: rgb(82, 0, 0);
+}

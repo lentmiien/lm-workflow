@@ -1,18 +1,46 @@
 const data = JSON.parse(document.getElementById('wfdata').innerHTML);
 const outelement = document.getElementById('workflow');
+const title = document.getElementById('workflow_title');
 const svgelement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 outelement.append(svgelement);
-let process_id = document.getElementById("workflow_select").value;
+let process_id = '0';
+document.getElementById('histbtn').disabled = true;
 
-function ShowWorkflow() {
-  process_id = document.getElementById("workflow_select").value;
+function ShowWorkflow(type) {
+  if (document.getElementById(`workflow_select_${type}`).value === "") {
+    return;
+  }
+
+  document.getElementById("history").innerHTML += `|${process_id}`;
+  document.getElementById('histbtn').disabled = false;
+  process_id = document.getElementById(`workflow_select_${type}`).value;
+  document.getElementById(`workflow_select_${type}`).value = '';
   svgelement.innerHTML = ''; // Clear previous data
   DisplayWorkflow();
+}
+
+function Back() {
+  const history = document.getElementById("history").innerHTML.split('|');
+  if (history.length > 1) {
+    const goto_hist = history.pop();
+    if (history.length == 1) {
+      document.getElementById('histbtn').disabled = true;
+    }
+    document.getElementById("history").innerHTML = history.join('|');
+    process_id = goto_hist;
+    title.innerText = '';
+    svgelement.innerHTML = ''; // Clear previous data
+    DisplayWorkflow();
+  }
 }
 
 const lanewidth = 200;
 
 function DisplayWorkflow() {
+  if (!data.processes[process_id]) {
+    return;
+  }
+
   const process = data.processes[process_id];
   const lanes = [];
   const actionheight = 100;
@@ -21,6 +49,9 @@ function DisplayWorkflow() {
   const hspacing = 20;
   const hlane = [];
   const vlane = [];
+
+  title.innerText = process.processName;
+
   process.actionNodes.forEach(an => {
     if (lanes.indexOf(an.processedby) == -1) {
       lanes.push(an.processedby);
@@ -359,8 +390,11 @@ function HideHover() {
 }
 
 function ShowProcess(pid) {
-  document.getElementById('workflow_select').value = pid;
-  ShowWorkflow();
+  document.getElementById("history").innerHTML += `|${process_id}`;
+  document.getElementById('histbtn').disabled = false;
+  process_id = pid;
+  svgelement.innerHTML = ''; // Clear previous data
+  DisplayWorkflow();
 }
 
 DisplayWorkflow();

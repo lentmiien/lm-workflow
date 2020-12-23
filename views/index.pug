@@ -1,24 +1,71 @@
 extends layout
 
 block content
-  h1 Workflow
-  -const keys = Object.keys(output.groups)
-  table.table.table-dark.table-striped
-    tbody
-      each key in keys
-        tr
-          td Group
-          td= output.groups[key].groupName
-        tr
-          td Members
-          td
-            each member in output.groups[key].members
-              span= member
-              br
-  select#workflow_select.form-control(name="workflow_select", onchange="ShowWorkflow()")
-    each key in Object.keys(output.processes)
-      option(value=key)= output.processes[key].processName
+  .row
+    .col
+      h1 Workflow
+  .row
+    .col
+      .d-flex.justify-content-around
+        .p-2
+          a.btn.btn-primary(href="/update") Reload database
+        .p-2
+          a.btn.btn-primary(href="/newprocess") Create new process
+        .p-2
+          button#histbtn.btn.btn-primary(onclick='Back()', disabled) Back
+  if output.processes
+    .row
+      .col.development
+        h2 Development
+        select#workflow_select_develop.form-control(name="workflow_select_develop", onchange="ShowWorkflow('develop')")
+          option(value="")
+          each key in Object.keys(output.processes)
+            if output.processes[key].processStatus == "develop"
+              option(value=key)= output.processes[key].processName
+        .d-flex.justify-content-around
+          .p-2
+            button.btn.btn-primary Details
+          .p-2
+            button.btn.btn-warning Edit
+      .col.active
+        h2 Active
+        select#workflow_select_active.form-control(name="workflow_select_active", onchange="ShowWorkflow('active')")
+          option(value="")
+          each key in Object.keys(output.processes)
+            if output.processes[key].processStatus == "active"
+              option(value=key)= output.processes[key].processName
+        .d-flex.justify-content-around
+          .p-2
+            button.btn.btn-primary Details
+          .p-2
+            button.btn.btn-warning Edit
+      .col.suspended
+        h2 Suspended
+        select#workflow_select_suspended.form-control(name="workflow_select_suspended", onchange="ShowWorkflow('suspended')")
+          option(value="")
+          each key in Object.keys(output.processes)
+            if output.processes[key].processStatus == "suspended"
+              option(value=key)= output.processes[key].processName
+        .d-flex.justify-content-around
+          .p-2
+            button.btn.btn-primary Details
+          .p-2
+            button.btn.btn-warning Edit
+      .col.retired
+        h2 Retired
+        select#workflow_select_retired.form-control(name="workflow_select_retired", onchange="ShowWorkflow('retired')")
+          option(value="")
+          each key in Object.keys(output.processes)
+            if output.processes[key].processStatus == "retired"
+              option(value=key)= output.processes[key].processName
+        .d-flex.justify-content-around
+          .p-2
+            button.btn.btn-primary Details
+          .p-2
+            button.btn.btn-warning Edit
   #workflow
-  h1 Debug stuff
-  pre#wfdata= JSON.stringify(output, null, 2)
+    h2#workflow_title
+  .hidden_
+    pre#wfdata= JSON.stringify(output, null, 2)
+    #history
   script(src="/javascripts/workflowrenderer.js")
