@@ -34,17 +34,20 @@ const sheetNames = [
   'Tasks'
 ];
 
-let needToLoadData = true;
+const rawdata = [];
 const output = {};
 
 exports.index = (req, res) => {
+  // Update if no data
+  if (rawdata.length == 0) {
+    return res.redirect('/update');
+  }
+
   // Display output
   res.render('index', { output });
 };
 
 exports.update = async (req, res) => {
-  needToLoadData = false;
-    
   // Acquire data
   const doc = new GoogleSpreadsheet(process.env.GSHEET_DOC_ID);
   await doc.useServiceAccountAuth(creds);
@@ -56,10 +59,13 @@ exports.update = async (req, res) => {
     const sheet = doc.sheetsByIndex[i];
     const rows_raw = await sheet.getRows();
     data[sheetName] = [];
+    rawdata.push({ sheetName, data: [] });
     rows_raw.forEach((row, index) => {
       data[sheetName].push({});
+      rawdata[i].data.push({});
       structure[i].forEach(sl => {
         data[sheetName][index][sl] = row[sl];
+        rawdata[i].data[index][sl] = row[sl];
       });
     });
   };
@@ -146,7 +152,7 @@ exports.processdetails = (req, res) => {
 };
 
 exports.processeditor = (req, res) => {
-  res.render('editor', { data: output, pid: req.query.pid });
+  res.render('editor', { data: rawdata, pid: req.query.pid });
 };
 
 exports.saveprocess = (req, res) => {
