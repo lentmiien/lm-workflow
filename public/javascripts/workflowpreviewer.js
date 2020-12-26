@@ -1,4 +1,4 @@
-const data = JSON.parse(document.getElementById('wfdata').innerHTML);
+const data = JSON.parse(document.getElementById('editdata').innerHTML);
 const outelement = document.getElementById('workflow');
 const svgelement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 outelement.append(svgelement);

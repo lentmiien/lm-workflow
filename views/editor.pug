@@ -2,12 +2,6 @@ extends layout
 
 block content
   h1 Editor
-  - let pindex = -1
-  - let i = 0
-  each process in data[3].data
-    if process.pid == pid
-      - pindex = i
-    - i++
   .row
     .col
       a.btn.btn-link(href="/") TOP
@@ -16,13 +10,13 @@ block content
           tr
             th(span="row") Process name
             td
-              input#processname.form-control(type="text", value=(pindex >= 0 ? data[3].data[pindex].process : ''), placeholder="Fill in process name")
+              input#processname.form-control(type="text", value=editdata.process, placeholder="Fill in process name")
           tr
             th(span="row") Owner
             td
               select#processowner.form-control(name="processowner")
                 each user in data[0].data
-                  if pindex >= 0 && user.uid == data[3].data[pindex].owner
+                  if user.uid == editdata.owner
                     option(value=user.uid, selected)= user.name
                   else
                     option(value=user.uid)= user.name
@@ -31,7 +25,7 @@ block content
             td
               select#processmanager.form-control(name="processmanager")
                 each user in data[0].data
-                  if pindex >= 0 && user.uid == data[3].data[pindex].manager
+                  if user.uid == editdata.manager
                     option(value=user.uid, selected)= user.name
                   else
                     option(value=user.uid)= user.name
@@ -41,21 +35,21 @@ block content
               select#processstatus.form-control(name="processstatus")
                 - const statuses = ["develop", "active", "suspended", "retired"]
                 each status in statuses
-                  if pindex >= 0 && status == data[3].data[pindex].status
+                  if status == editdata.status
                     option(value=status, selected)= status
                   else
                     option(value=status)= status
           tr
             th(span="row") Comment
             td
-              input#processcomment.form-control(type="text", value=(pindex >= 0 ? data[3].data[pindex].comment : ''), placeholder="Shortly describe the process")
+              input#processcomment.form-control(type="text", value=editdata.comment, placeholder="Shortly describe the process")
           tr
             th(span="row") ID
-            td#pid= pindex >= 0 ? pid : 'New'
+            td#pid= editdata.pid
           tr
             th(span="row") Actions
             td
-              button.btn.btn-warning(onclick=`SaveProcess(${pid})`) Save
+              button.btn.btn-warning(onclick=`SaveProcess()`) Save
   .row
     .col
       h2 Action node list
@@ -71,5 +65,7 @@ block content
       #workflow
   .hidden_
     h2 Debug data
+    pre#editdata= JSON.stringify(editdata, null, 2)
     pre#data= JSON.stringify(data, null, 2)
-  script(src="/javascripts/workfloweditrenderer.js")
+  script(src="/javascripts/workflowpreviewer.js")
+  script(src="/javascripts/editor.js")

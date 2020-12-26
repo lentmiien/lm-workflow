@@ -18,8 +18,8 @@ const structure = [
   ['gid', 'name'],
   ['user_id', 'group_id'],
   ['pid', 'process', 'owner', 'manager', 'status', 'comment'],
-  ['anid', 'belongto_pid', 'content_pid', 'content_aid', 'in_id', 'out_ids', 'processedby'],
-  ['nid', 'belongto_pid', 'in_id', 'out_id'],
+  ['anid', 'order', 'belongto_pid', 'content_pid', 'content_aid', 'in_id', 'out_ids', 'processedby'],
+  ['nid', 'order', 'belongto_pid', 'in_id', 'out_id'],
   ['aid', 'action', 'content_tids', 'outputs'],
   ['tid', 'task', 'outputs']
 ];
@@ -119,6 +119,15 @@ exports.update = async (req, res) => {
       tmp_actions[action.aid].content.push(tmp_tasks[task]);
     });
   });
+  data['ActionNodes'].sort((a, b) => {
+    if (parseInt(a.order) < parseInt(b.order)) {
+      return -1;
+    } else if (parseInt(a.order) > parseInt(b.order)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
   data['ActionNodes'].forEach(an => {
     if (tmp_actions[an.content_aid]) {
       output['processes'][an.belongto_pid].actionNodes.push({
@@ -137,6 +146,15 @@ exports.update = async (req, res) => {
       });
     }
   });
+  data['Network'].sort((a, b) => {
+    if (parseInt(a.order) < parseInt(b.order)) {
+      return -1;
+    } else if (parseInt(a.order) > parseInt(b.order)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
   data['Network'].forEach(n => {
     output['processes'][n.belongto_pid].network.push({
       in_id: n.in_id,
@@ -152,10 +170,51 @@ exports.processdetails = (req, res) => {
 };
 
 exports.processeditor = (req, res) => {
-  res.render('editor', { data: rawdata, pid: req.query.pid });
+  const editdata = {};
+  if (output['processes'][req.query.pid]) {
+    // Aquire data index
+    let index = 0;
+    while (rawdata[3].data[index].pid != req.query.pid) {
+      index++;
+    }
+    // Set data in editdata
+    editdata['process'] = rawdata[3].data[index].process;
+    editdata['owner'] = rawdata[3].data[index].owner;
+    editdata['manager'] = rawdata[3].data[index].manager;
+    editdata['status'] = rawdata[3].data[index].status;
+    editdata['comment'] = rawdata[3].data[index].comment;
+    editdata['pid'] = req.query.pid;
+
+    // Action nodes
+    editdata['ans'] = [];
+    rawdata[4].data.forEach(entry => {
+      if (entry.belongto_pid == req.query.pid) {
+        editdata['ans'].push(entry);
+      }
+    });
+
+    // Network
+    editdata['ns'] = [];
+    rawdata[5].data.forEach(entry => {
+      if (entry.belongto_pid == req.query.pid) {
+        editdata['ns'].push(entry);
+      }
+    });
+  } else {
+    // Generate empty editdata
+    editdata['process'] = '';
+    editdata['owner'] = '';
+    editdata['manager'] = '';
+    editdata['status'] = 'develop';
+    editdata['comment'] = '';
+    editdata['pid'] = '0';
+    editdata['ans'] = [];
+    editdata['ns'] = [];
+  }
+  res.render('editor', { data: rawdata, editdata });
 };
 
 exports.saveprocess = (req, res) => {
   const process_id_to_save = 'dummy';
-  res.redirect(`/processdetails?pid=${process_id_to_save}`);
+  res.json({ status: 'SAVED', pid: process_id_to_save });
 };
