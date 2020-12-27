@@ -25,6 +25,8 @@ function Aquire(id) {
 
 let connectionlist = {}
 let cnt = 0;
+let in_ids = [];
+let out_ids = [];
 
 function SaveProcess() {
   // Save data to server
@@ -86,6 +88,8 @@ function UpdateTables() {
     End: 'End'
   };
   cnt = 0;
+  in_ids = [];
+  out_ids = [];
 
   actionnodelist.innerHTML = '';
   ans.forEach((an, i) => {
@@ -109,6 +113,7 @@ function UpdateTables() {
     const content = document.createElement('tr');
     cell = document.createElement('td');
     connectionlist[an.in_id] = `Con${cnt++}`;
+    in_ids.push(an.in_id);
     cell.innerHTML = `<ul><li>${connectionlist[an.in_id]}</li></ul>`;
     content.append(cell);
     cell = document.createElement('td');
@@ -125,7 +130,10 @@ function UpdateTables() {
     content.append(cell);
     cell = document.createElement('td');
     const allout = an.out_ids.split(',');
-    allout.forEach(ao => connectionlist[ao] = `Con${cnt++}`);
+    allout.forEach(ao => {
+      connectionlist[ao] = `Con${cnt++}`;
+      out_ids.push(ao);
+    });
     const aol = [];
     if (allout.length > 1 && Aquire(an.content_aid)) {
       const alloutstr = Aquire(an.content_aid).outputs.split(',');
@@ -166,6 +174,44 @@ function UpdateTables() {
   
     networklist.append(content);
   });
+  const inputrow = document.createElement('tr');
+  cell = document.createElement('td');
+  let select = document.createElement('select');
+  select.setAttribute('id', 'startarrow');
+  select.setAttribute('name', 'startarrow');
+  select.setAttribute('class', 'form-control');
+  select.innerHTML = '<option value="Start">Start</option>';
+  out_ids.forEach(id => {
+    const option = document.createElement('option');
+    option.setAttribute('value', id);
+    option.innerText = connectionlist[id];
+    select.append(option);
+  });
+  cell.append(select);
+  inputrow.append(cell);
+  cell = document.createElement('td');
+  let button = document.createElement('button');
+  button.setAttribute('onclick', 'AddNetwork(document.getElementById("startarrow").value,document.getElementById("endarrow").value)');
+  button.setAttribute('class', 'btn btn-primary');
+  button.innerHTML = '⇒<br>Add';
+  cell.append(button);
+  inputrow.append(cell);
+  cell = document.createElement('td');
+  select = document.createElement('select');
+  select.setAttribute('id', 'endarrow');
+  select.setAttribute('name', 'endarrow');
+  select.setAttribute('class', 'form-control');
+  select.innerHTML = '<option value="End">End</option>';
+  in_ids.forEach(id => {
+    const option = document.createElement('option');
+    option.setAttribute('value', id);
+    option.innerText = connectionlist[id];
+    select.append(option);
+  });
+  cell.append(select);
+  inputrow.append(cell);
+
+  networklist.append(inputrow);
 }
 UpdateTables();
 
@@ -193,4 +239,16 @@ function AddActionNode(id) {
   DisplayWorkflow();
 }
 
-function AddNetwork(start, end) {}
+function AddNetwork(start, end) {
+  const newID = Date.now();
+  newdata[newID] = {
+    nid: newID.toString(),
+    order: ns.length,
+    belongto_pid: pid,
+    in_id: start,
+    out_id: end
+  };
+
+  UpdateTables();
+  DisplayWorkflow();
+}
