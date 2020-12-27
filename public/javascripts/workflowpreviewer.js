@@ -1,25 +1,15 @@
-const data = JSON.parse(document.getElementById('editdata').innerHTML);
-const rawdatapreview = JSON.parse(document.getElementById('data').innerHTML);
 const outelement = document.getElementById('workflow');
 const svgelement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 outelement.append(svgelement);
-let process_id = document.getElementById('pid').innerText;
-
-const id_db = {};
-rawdatapreview[0].data.forEach(d => id_db[d.uid] = d.name);
-rawdatapreview[1].data.forEach(d => id_db[d.gid] = d.name);
-//rawdatapreview[2].data.forEach(d => id_db[???] = ???);
-rawdatapreview[3].data.forEach(d => id_db[d.pid] = d.process);
-//rawdatapreview[4].data.forEach(d => id_db[d.anid] = ???);
-//rawdatapreview[5].data.forEach(d => id_db[d.nid] = ???);
-rawdatapreview[6].data.forEach(d => id_db[d.aid] = d.action);
-rawdatapreview[6].data.forEach(d => id_db[`${d.aid}_tids`] = d.content_tids);
-rawdatapreview[7].data.forEach(d => id_db[d.tid] = d.task);
 
 const lanewidth = 200;
 
 function DisplayWorkflow() {
-  const process = data;
+  if (!rawdata[pid]) {
+    return;
+  }
+
+  const process = rawdata[pid];
   const lanes = [];
   const actionheight = 100;
   const header = 50;
@@ -28,14 +18,43 @@ function DisplayWorkflow() {
   const hlane = [];
   const vlane = [];
 
-  process.ans.forEach(an => {
-    if (lanes.indexOf(id_db[an.processedby]) == -1) {
-      lanes.push(id_db[an.processedby]);
+  let ans = [];
+  let ns = [];
+  Object.keys(rawdata).forEach(key => {
+    if (rawdata[key].anid && rawdata[key].belongto_pid == pid) {
+      ans.push(rawdata[key]);
+    }
+    if (rawdata[key].nid && rawdata[key].belongto_pid == pid) {
+      ns.push(rawdata[key]);
+    }
+  });
+  ans.sort((a, b) => {
+    if (a.order < b.order) {
+      return -1;
+    } else if (a.order > b.order) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  ns.sort((a, b) => {
+    if (a.order < b.order) {
+      return -1;
+    } else if (a.order > b.order) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
+  ans.forEach(an => {
+    if (lanes.indexOf(rawdata[an.processedby].name) == -1) {
+      lanes.push(rawdata[an.processedby].name);
     }
   });
 
   // Set output size
-  const height = process.ans.length * (actionheight + vspacing) + header;// TODO: May need adjustment
+  const height = ans.length * (actionheight + vspacing) + header;// TODO: May need adjustment
   svgelement.setAttributeNS(null, 'width', lanes.length * (lanewidth + hspacing));
   svgelement.setAttributeNS(null, 'height', height);
 
@@ -90,8 +109,8 @@ function DisplayWorkflow() {
 
   // Draw actions
   const iolist = {};
-  process.ans.forEach((an, cnt) => {
-    const lanenumber = lanes.indexOf(id_db[an.processedby]);
+  ans.forEach((an, cnt) => {
+    const lanenumber = lanes.indexOf(rawdata[an.processedby].name);
 
     const g_actionnode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     // Background
@@ -102,7 +121,7 @@ function DisplayWorkflow() {
     actionnodebackground.setAttributeNS(null, 'ry', 10);
     actionnodebackground.setAttributeNS(null, 'width', lanewidth - 10);
     actionnodebackground.setAttributeNS(null, 'height', actionheight);
-    actionnodebackground.setAttributeNS(null, 'fill', an.content_aid == '0' ? '#ffffff' : lanecolor[id_db[an.processedby]] ? lanecolor[id_db[an.processedby]] : 'orange');
+    actionnodebackground.setAttributeNS(null, 'fill', an.content_aid == '0' ? '#ffffff' : lanecolor[rawdata[an.processedby].name] ? lanecolor[rawdata[an.processedby].name] : 'orange');
     actionnodebackground.setAttributeNS(null, 'stroke', 'black');
     g_actionnode.append(actionnodebackground);
     // Title
@@ -111,9 +130,9 @@ function DisplayWorkflow() {
     actionnodebacktitle.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + 20);
     actionnodebacktitle.setAttributeNS(null, 'text-anchor', 'middle');
     if (an.content_pid == '0') {
-      actionnodebacktitle.textContent = id_db[an.content_aid];
+      actionnodebacktitle.textContent = rawdata[an.content_aid].action;
     } else {
-      actionnodebacktitle.textContent = id_db[an.content_pid];
+      actionnodebacktitle.textContent = rawdata[an.content_pid].process;
     }
     g_actionnode.append(actionnodebacktitle);
     // Tasks
@@ -135,11 +154,11 @@ function DisplayWorkflow() {
     actiontasksrect.setAttributeNS(null, 'stroke', 'black');
     if (an.content_pid == '0') {
       let taskstring = '';
-      id_db[`${an.content_aid}_tids`].split(',').forEach(task => {
+      rawdata[an.content_aid].content_tids.split(',').forEach(task => {
         if (taskstring.length == 0) {
-          taskstring += id_db[task];
+          taskstring += rawdata[task].task;
         } else {
-          taskstring += '|' + id_db[task];
+          taskstring += '|' + rawdata[task].task;
         }
       });
       actiontasksrect.setAttributeNS(null, 'onmouseenter', `DisplayHover(${lanenumber * (lanewidth + hspacing) + (lanewidth / 2)},${cnt * (actionheight + vspacing) + header + 65},"${taskstring}")`);
@@ -162,7 +181,7 @@ function DisplayWorkflow() {
     g_actionnode.append(connectionNode);
     // Outputs
     const outs = an.out_ids.split(',');
-    const labels = false;//outs.length > 1;
+    const labels = outs.length > 1;
     const many_labels = outs.length > 2;
     outs.forEach((id, c) => {
       iolist[id] = {
@@ -176,7 +195,7 @@ function DisplayWorkflow() {
       connectionNode.setAttributeNS(null, 'stroke', 'black');
       g_actionnode.append(connectionNode);
       if (labels) {
-        const textcontent = an.action.outputs.split(',');
+        const textcontent = rawdata[an.content_aid].outputs.split(',');
         const outlabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         outlabel.setAttributeNS(null, 'x', lanenumber * (lanewidth + hspacing) + (c + 1) * (lanewidth / (outs.length + 1)));
         outlabel.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + actionheight - 10 - (many_labels ? ((c%2) * 15) : 0));
@@ -190,7 +209,7 @@ function DisplayWorkflow() {
   });
 
   // Draw arrows
-  process.ns.forEach(nn => {
+  ns.forEach(nn => {
     if (nn.in_id == "Start") {
       let nnNode = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       nnNode.setAttributeNS(null, 'cx', iolist[nn.out_id].x);
@@ -365,4 +384,4 @@ function HideHover() {
   element.parentElement.removeChild(element);
 }
 
-DisplayWorkflow();
+setTimeout(DisplayWorkflow, 1000);

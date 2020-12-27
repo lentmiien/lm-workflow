@@ -16,7 +16,7 @@ const creds = {
 const structure = [
   ['uid', 'name'],
   ['gid', 'name'],
-  ['user_id', 'group_id'],
+  ['ugid', 'user_id', 'group_id'],
   ['pid', 'process', 'owner', 'manager', 'status', 'comment'],
   ['anid', 'order', 'belongto_pid', 'content_pid', 'content_aid', 'in_id', 'out_ids', 'processedby'],
   ['nid', 'order', 'belongto_pid', 'in_id', 'out_id'],
@@ -34,12 +34,12 @@ const sheetNames = [
   'Tasks'
 ];
 
-const rawdata = [];
+const rawdata = {};
 const output = {};
 
 exports.index = (req, res) => {
   // Update if no data
-  if (rawdata.length == 0) {
+  if (Object.keys(rawdata).length == 0) {
     return res.redirect('/update');
   }
 
@@ -59,13 +59,13 @@ exports.update = async (req, res) => {
     const sheet = doc.sheetsByIndex[i];
     const rows_raw = await sheet.getRows();
     data[sheetName] = [];
-    rawdata.push({ sheetName, data: [] });
     rows_raw.forEach((row, index) => {
       data[sheetName].push({});
-      rawdata[i].data.push({});
+      const thisID = row[structure[i][0]];
+      rawdata[thisID] = {};
       structure[i].forEach(sl => {
         data[sheetName][index][sl] = row[sl];
-        rawdata[i].data[index][sl] = row[sl];
+        rawdata[thisID][sl] = row[sl];
       });
     });
   };
@@ -170,48 +170,7 @@ exports.processdetails = (req, res) => {
 };
 
 exports.processeditor = (req, res) => {
-  const editdata = {};
-  if (output['processes'][req.query.pid]) {
-    // Aquire data index
-    let index = 0;
-    while (rawdata[3].data[index].pid != req.query.pid) {
-      index++;
-    }
-    // Set data in editdata
-    editdata['process'] = rawdata[3].data[index].process;
-    editdata['owner'] = rawdata[3].data[index].owner;
-    editdata['manager'] = rawdata[3].data[index].manager;
-    editdata['status'] = rawdata[3].data[index].status;
-    editdata['comment'] = rawdata[3].data[index].comment;
-    editdata['pid'] = req.query.pid;
-
-    // Action nodes
-    editdata['ans'] = [];
-    rawdata[4].data.forEach(entry => {
-      if (entry.belongto_pid == req.query.pid) {
-        editdata['ans'].push(entry);
-      }
-    });
-
-    // Network
-    editdata['ns'] = [];
-    rawdata[5].data.forEach(entry => {
-      if (entry.belongto_pid == req.query.pid) {
-        editdata['ns'].push(entry);
-      }
-    });
-  } else {
-    // Generate empty editdata
-    editdata['process'] = '';
-    editdata['owner'] = '';
-    editdata['manager'] = '';
-    editdata['status'] = 'develop';
-    editdata['comment'] = '';
-    editdata['pid'] = '0';
-    editdata['ans'] = [];
-    editdata['ns'] = [];
-  }
-  res.render('editor', { data: rawdata, editdata });
+  res.render('editor', { rawdata, pid: req.query.pid ? req.query.pid : Date.now() });
 };
 
 exports.saveprocess = (req, res) => {

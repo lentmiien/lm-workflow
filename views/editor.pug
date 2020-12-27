@@ -10,42 +10,44 @@ block content
           tr
             th(span="row") Process name
             td
-              input#processname.form-control(type="text", value=editdata.process, placeholder="Fill in process name")
+              input#processname.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].process : ''), placeholder="Fill in process name")
           tr
             th(span="row") Owner
             td
               select#processowner.form-control(name="processowner")
-                each user in data[0].data
-                  if user.uid == editdata.owner
-                    option(value=user.uid, selected)= user.name
-                  else
-                    option(value=user.uid)= user.name
+                each val, key in rawdata
+                  if val.uid
+                    if rawdata[pid] && key == rawdata[pid].owner
+                      option(value=key, selected)= val.name
+                    else
+                      option(value=key)= val.name
           tr
             th(span="row") Manager
             td
               select#processmanager.form-control(name="processmanager")
-                each user in data[0].data
-                  if user.uid == editdata.manager
-                    option(value=user.uid, selected)= user.name
-                  else
-                    option(value=user.uid)= user.name
+                each val, key in rawdata
+                  if val.uid
+                    if rawdata[pid] && key == rawdata[pid].manager
+                      option(value=key, selected)= val.name
+                    else
+                      option(value=key)= val.name
           tr
             th(span="row") Status
             td
               select#processstatus.form-control(name="processstatus")
                 - const statuses = ["develop", "active", "suspended", "retired"]
                 each status in statuses
-                  if status == editdata.status
+                  if rawdata[pid] && status == rawdata[pid].status
                     option(value=status, selected)= status
                   else
                     option(value=status)= status
           tr
             th(span="row") Comment
             td
-              input#processcomment.form-control(type="text", value=editdata.comment, placeholder="Shortly describe the process")
+              input#processcomment.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].comment : ''), placeholder="Shortly describe the process")
           tr
             th(span="row") ID
-            td#pid= editdata.pid
+            td#pid= pid
           tr
             th(span="row") Actions
             td
@@ -65,7 +67,6 @@ block content
       #workflow
   .hidden_
     h2 Debug data
-    pre#editdata= JSON.stringify(editdata, null, 2)
-    pre#data= JSON.stringify(data, null, 2)
+    pre#data= JSON.stringify(rawdata, null, 2)
   script(src="/javascripts/workflowpreviewer.js")
   script(src="/javascripts/editor.js")
