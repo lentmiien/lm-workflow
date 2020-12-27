@@ -23,10 +23,7 @@ function Aquire(id) {
   }
 }
 
-const connectionlist = {
-  Start: 'Start',
-  End: 'End'
-};
+let connectionlist = {}
 let cnt = 0;
 
 function SaveProcess() {
@@ -80,9 +77,17 @@ function LoadAnsNs() {
     }
   });
 }
-LoadAnsNs();
 
 function UpdateTables() {
+  LoadAnsNs();
+
+  connectionlist = {
+    Start: 'Start',
+    End: 'End'
+  };
+  cnt = 0;
+
+  actionnodelist.innerHTML = '';
   ans.forEach((an, i) => {
     const header = document.createElement('tr');
     let cell = document.createElement('th');
@@ -146,6 +151,7 @@ function UpdateTables() {
     actionnodelist.append(spacer);
   });
   
+  networklist.innerHTML = '';
   ns.forEach((n, i) => {
     const content = document.createElement('tr');
     cell = document.createElement('td');
@@ -162,3 +168,29 @@ function UpdateTables() {
   });
 }
 UpdateTables();
+
+function AddActionNode(id) {
+  const newID = Date.now();
+  let outputs = (newID + 2).toString();
+  if (Aquire(id).aid) {
+    const outs = Aquire(id).outputs.split(',');
+    for (let i = 1; i < outs.length; i++) {
+      outputs += `,${newID + 2 + i}`;
+    }
+  }
+  newdata[newID] = {
+    anid: newID.toString(),
+    order: ans.length,
+    belongto_pid: pid,
+    content_pid: Aquire(id).pid ? id : '0',
+    content_aid: Aquire(id).aid ? id : '0',
+    in_id: (newID + 1).toString(),
+    out_ids: outputs,
+    processedby: '1608296836280' //  "Oh-ami"
+  };
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function AddNetwork(start, end) {}

@@ -5,11 +5,11 @@ outelement.append(svgelement);
 const lanewidth = 200;
 
 function DisplayWorkflow() {
-  if (!rawdata[pid]) {
+  if (!Aquire(pid)) {
     return;
   }
+  svgelement.innerHTML = '';// Reset render
 
-  const process = rawdata[pid];
   const lanes = [];
   const actionheight = 100;
   const header = 50;
@@ -17,35 +17,6 @@ function DisplayWorkflow() {
   const hspacing = 20;
   const hlane = [];
   const vlane = [];
-
-  let ans = [];
-  let ns = [];
-  Object.keys(rawdata).forEach(key => {
-    if (rawdata[key].anid && rawdata[key].belongto_pid == pid) {
-      ans.push(rawdata[key]);
-    }
-    if (rawdata[key].nid && rawdata[key].belongto_pid == pid) {
-      ns.push(rawdata[key]);
-    }
-  });
-  ans.sort((a, b) => {
-    if (a.order < b.order) {
-      return -1;
-    } else if (a.order > b.order) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-  ns.sort((a, b) => {
-    if (a.order < b.order) {
-      return -1;
-    } else if (a.order > b.order) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
 
   ans.forEach(an => {
     if (lanes.indexOf(rawdata[an.processedby].name) == -1) {

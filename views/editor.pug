@@ -57,6 +57,19 @@ block content
       h2 Action node list
       table.table.table-dark.table-striped
         tbody#actionnodelist
+      .input-group
+        select#action.form-control(name="action")
+          optgroup(label="Actions")
+            each key in Object.keys(rawdata)
+              if rawdata[key].aid
+                option(value=rawdata[key].aid)= rawdata[key].action
+          optgroup(label="Processes")
+            each key in Object.keys(rawdata)
+              if rawdata[key].pid
+                option(value=rawdata[key].pid)= rawdata[key].process
+        .input-group-append
+          button.btn.btn-primary(onclick="AddActionNode(document.getElementById('action').value)") Add
+
     .col
       h2 Network list
       table.table.table-dark.table-striped
