@@ -33,6 +33,13 @@ function SaveProcess() {
   // POST: /saveprocess
 }
 
+let gs = [];
+Object.keys(rawdata).forEach(key => {
+  if (rawdata[key].gid) {
+    gs.push(rawdata[key]);
+  }
+});
+
 let ans = [];
 let ns = [];
 function LoadAnsNs() {
@@ -127,6 +134,20 @@ function UpdateTables() {
     } else {
       cell.innerHTML = `<div class="listaction"><b>${Aquire(an.content_pid).process}</b></div>`;
     }
+    // Processed by
+    const pbselect = document.createElement('select');
+    pbselect.setAttribute('id', 'pbselect');
+    pbselect.setAttribute('class', 'form-control');
+    gs.forEach(g => {
+      const pboption = document.createElement('option');
+      pboption.setAttribute('value', g.gid);
+      pboption.innerText = g.name;
+      if (g.gid == an.processedby) {
+        pboption.selected = true;
+      }
+      pbselect.append(pboption);
+    });
+    cell.append(pbselect);
     content.append(cell);
     cell = document.createElement('td');
     const allout = an.out_ids.split(',');
