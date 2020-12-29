@@ -138,6 +138,7 @@ function UpdateTables() {
     const pbselect = document.createElement('select');
     pbselect.setAttribute('id', 'pbselect');
     pbselect.setAttribute('class', 'form-control');
+    pbselect.setAttribute('onchange', `UpdateProcessedBy(${an.anid},this.value)`);
     gs.forEach(g => {
       const pboption = document.createElement('option');
       pboption.setAttribute('value', g.gid);
@@ -269,6 +270,26 @@ function AddNetwork(start, end) {
     in_id: start,
     out_id: end
   };
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function UpdateProcessedBy(id, value) {
+  if (newdata[id]) {
+    newdata[id].processedby = value;
+  } else {
+    newdata[id] = {
+      anid: id,
+      order: rawdata[id].order,
+      belongto_pid: rawdata[id].belongto_pid,
+      content_pid: rawdata[id].content_pid,
+      content_aid: rawdata[id].content_aid,
+      in_id: rawdata[id].in_id,
+      out_ids: rawdata[id].out_ids,
+      processedby: value
+    };
+  }
 
   UpdateTables();
   DisplayWorkflow();
