@@ -101,9 +101,9 @@ function DisplayWorkflow() {
     actionnodebacktitle.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + 20);
     actionnodebacktitle.setAttributeNS(null, 'text-anchor', 'middle');
     if (an.content_pid == '0') {
-      actionnodebacktitle.textContent = rawdata[an.content_aid].action;
+      actionnodebacktitle.textContent = Aquire(an.content_aid).action;
     } else {
-      actionnodebacktitle.textContent = rawdata[an.content_pid].process;
+      actionnodebacktitle.textContent = Aquire(an.content_pid).process;
     }
     g_actionnode.append(actionnodebacktitle);
     // Tasks
@@ -125,11 +125,13 @@ function DisplayWorkflow() {
     actiontasksrect.setAttributeNS(null, 'stroke', 'black');
     if (an.content_pid == '0') {
       let taskstring = '';
-      rawdata[an.content_aid].content_tids.split(',').forEach(task => {
-        if (taskstring.length == 0) {
-          taskstring += rawdata[task].task;
-        } else {
-          taskstring += '|' + rawdata[task].task;
+      Aquire(an.content_aid).content_tids.split(',').forEach(task => {
+        if (task.length > 0) {
+          if (taskstring.length == 0) {
+            taskstring += rawdata[task].task;
+          } else {
+            taskstring += '|' + rawdata[task].task;
+          }
         }
       });
       actiontasksrect.setAttributeNS(null, 'onmouseenter', `DisplayHover(${lanenumber * (lanewidth + hspacing) + (lanewidth / 2)},${cnt * (actionheight + vspacing) + header + 65},"${taskstring}")`);

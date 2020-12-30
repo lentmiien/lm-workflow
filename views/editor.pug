@@ -63,6 +63,7 @@ block content
             each key in Object.keys(rawdata)
               if rawdata[key].aid
                 option(value=rawdata[key].aid)= rawdata[key].action
+            option(value="0") New action
           optgroup(label="Processes")
             each key in Object.keys(rawdata)
               if rawdata[key].pid

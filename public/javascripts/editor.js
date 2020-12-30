@@ -126,10 +126,11 @@ function UpdateTables() {
     if (Aquire(an.content_aid)) {
       // Prepare tasks
       const tasks = Aquire(an.content_aid).content_tids.split(',');
-      for (let t_i = 0; t_i < tasks.length; t_i++) {
-        tasks[t_i] = Aquire(tasks[t_i]).task;
+      for (let t_i = 0; t_i < tasks.length && tasks[0].length > 0; t_i++) {
+        tasks[t_i] = Aquire(tasks[t_i]).task + ` <button class="btn btn-danger" onclick="RemoveTaskFromAction('${an.content_aid}',${t_i})">X</button>`;
       }
-      cell.innerHTML = `<div class="listaction"><b>${Aquire(an.content_aid).action}</b><ol><li>${tasks.join('</li><li>')}</li></ol></div>`;
+      tasks.push(`<button class="btn btn-warning" onclick="TaskPopup('${an.content_aid}')">Add</button>`);
+      cell.innerHTML = `<div class="listaction"><input class="form-control" value="${Aquire(an.content_aid).action}" onchange="EditAction('${an.content_aid}',this.value,'action')"><ol><li>${tasks.join('</li><li>')}</li></ol>*Changes above will affect all processes</div>`;
     } else {
       cell.innerHTML = `<div class="listaction"><b>${Aquire(an.content_pid).process}</b></div>`;
     }
@@ -274,20 +275,31 @@ function UpdateTables() {
 UpdateTables();
 
 function AddActionNode(id) {
+  let thisid = id;
   const newID = Date.now();
   let outputs = (newID + 2).toString();
-  if (Aquire(id).aid) {
+  if (id == '0') {
+    // Generate a new action
+    const aid = (newID + 3).toString();
+    thisid = aid;
+    newdata[aid] = {
+      aid: aid,
+      action: "New action",
+      content_tids: "",
+      outputs: "OK"
+    };
+  } else if (Aquire(id).aid) {
     const outs = Aquire(id).outputs.split(',');
     for (let i = 1; i < outs.length; i++) {
       outputs += `,${newID + 2 + i}`;
     }
   }
-  newdata[newID] = {
+  newdata[newID.toString()] = {
     anid: newID.toString(),
     order: ans.length,
     belongto_pid: pid,
-    content_pid: Aquire(id).pid ? id : '0',
-    content_aid: Aquire(id).aid ? id : '0',
+    content_pid: Aquire(thisid).pid ? thisid : '0',
+    content_aid: Aquire(thisid).aid ? thisid : '0',
     in_id: (newID + 1).toString(),
     out_ids: outputs,
     processedby: '1608296836280' //  "Oh-ami"
@@ -540,14 +552,10 @@ function MoveDownN(id) {
 
   UpdateTables();
   DisplayWorkflow();
-
-  console.log(ns);
 }
 
 function EditProcess(id, value, field) {
-  if (newdata[id]) {
-    newdata[id][field] = value;
-  } else {
+  if (!newdata[id]) {
     newdata[id] = {
       pid: id,
       process: rawdata[id].process,
@@ -556,6 +564,32 @@ function EditProcess(id, value, field) {
       status: rawdata[id].status,
       comment: rawdata[id].comment
     };
-    newdata[id][field] = value;
   }
+  newdata[id][field] = value;
+}
+
+function EditAction(id, value, field) {
+  if (!newdata[id]) {
+    newdata[id] = {
+      aid: id,
+      action: rawdata[id].action,
+      content_tids: rawdata[id].content_tids,
+      outputs: rawdata[id].outputs
+    };
+  }
+  newdata[id][field] = value;
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function RemoveTaskFromAction(aid, t_index) {
+  const tids = Aquire(aid).content_tids.split(',');
+  tids.splice(t_index, 1);
+  EditAction(aid, tids.join(','), 'content_tids');
+}
+
+function TaskPopup(aid) {
+  // Display a fullscreen popup where you can add one task to action (aid)
+  console.log(aid);
 }
