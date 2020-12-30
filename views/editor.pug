@@ -10,11 +10,11 @@ block content
           tr
             th(span="row") Process name
             td
-              input#processname.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].process : ''), placeholder="Fill in process name")
+              input#processname.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].process : ''), placeholder="Fill in process name", onchange=`EditProcess("${pid}",this.value,"process")`)
           tr
             th(span="row") Owner
             td
-              select#processowner.form-control(name="processowner")
+              select#processowner.form-control(name="processowner", onchange=`EditProcess("${pid}",this.value,"owner")`)
                 each val, key in rawdata
                   if val.uid
                     if rawdata[pid] && key == rawdata[pid].owner
@@ -24,7 +24,7 @@ block content
           tr
             th(span="row") Manager
             td
-              select#processmanager.form-control(name="processmanager")
+              select#processmanager.form-control(name="processmanager", onchange=`EditProcess("${pid}",this.value,"manager")`)
                 each val, key in rawdata
                   if val.uid
                     if rawdata[pid] && key == rawdata[pid].manager
@@ -34,7 +34,7 @@ block content
           tr
             th(span="row") Status
             td
-              select#processstatus.form-control(name="processstatus")
+              select#processstatus.form-control(name="processstatus", onchange=`EditProcess("${pid}",this.value,"status")`)
                 - const statuses = ["develop", "active", "suspended", "retired"]
                 each status in statuses
                   if rawdata[pid] && status == rawdata[pid].status
@@ -44,7 +44,7 @@ block content
           tr
             th(span="row") Comment
             td
-              input#processcomment.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].comment : ''), placeholder="Shortly describe the process")
+              input#processcomment.form-control(type="text", value=(rawdata[pid] ? rawdata[pid].comment : ''), placeholder="Shortly describe the process", onchange=`EditProcess("${pid}",this.value,"comment")`)
           tr
             th(span="row") ID
             td#pid= pid

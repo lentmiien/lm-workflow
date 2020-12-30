@@ -70,6 +70,13 @@ exports.update = async (req, res) => {
     });
   };
 
+  // Change order: string to number
+  Object.keys(rawdata).forEach(key => {
+    if (rawdata[key].order) {
+      rawdata[key].order = parseInt(rawdata[key].order);
+    }
+  });
+
   // Generate output
   //const output = {};
 

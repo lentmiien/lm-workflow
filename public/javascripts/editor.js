@@ -210,6 +210,23 @@ function UpdateTables() {
     cell = document.createElement('td');
     cell.innerText = connectionlist[n.out_id];
     content.append(cell);
+    cell = document.createElement('td');
+    const ndel = document.createElement('button');
+    ndel.setAttribute('class', 'btn btn-danger');
+    ndel.setAttribute('onclick', `DeleteN("${n.nid}")`);
+    ndel.innerText = 'X';
+    const nup = document.createElement('button');
+    nup.setAttribute('class', 'btn btn-primary');
+    nup.setAttribute('onclick', `MoveUpN("${n.nid}")`);
+    nup.innerText = '↑';
+    const ndown = document.createElement('button');
+    ndown.setAttribute('class', 'btn btn-primary');
+    ndown.setAttribute('onclick', `MoveDownN("${n.nid}")`);
+    ndown.innerText = '↓';
+    cell.append(nup);
+    cell.append(ndown);
+    cell.append(ndel);
+    content.append(cell);
   
     networklist.append(content);
   });
@@ -248,6 +265,8 @@ function UpdateTables() {
     select.append(option);
   });
   cell.append(select);
+  inputrow.append(cell);
+  cell = document.createElement('td');
   inputrow.append(cell);
 
   networklist.append(inputrow);
@@ -336,15 +355,49 @@ function DeleteAN(id) {
   ids.push(newdata[id].in_id);
   RemoveNetworkContainingIds(ids);
 
-  console.log(newdata);
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function MoveUpAN(id) {
+  const order_to_change = Aquire(id).order;
+  if (order_to_change <= 0) {
+    return;
+  }
+
+  ans.forEach(an => {
+    if (an.order == order_to_change - 1) {
+      // Move down (++)
+      UpdateANOrder(an.anid, order_to_change);
+    } else if (an.order == order_to_change) {
+      // Move up (--)
+      UpdateANOrder(an.anid, order_to_change - 1);
+    }
+  });
 
   UpdateTables();
   DisplayWorkflow();
 }
 
-function MoveUpAN(id) {}
+function MoveDownAN(id) {
+  const order_to_change = Aquire(id).order;
+  if (order_to_change >= ans.length - 1) {
+    return;
+  }
+  
+  ans.forEach(an => {
+    if (an.order == order_to_change) {
+      // Move down (++)
+      UpdateANOrder(an.anid, order_to_change + 1);
+    } else if (an.order == order_to_change + 1) {
+      // Move up (--)
+      UpdateANOrder(an.anid, order_to_change);
+    }
+  });
 
-function MoveDownAN(id) {}
+  UpdateTables();
+  DisplayWorkflow();
+}
 
 function FixANOrderValues() {
   // ans
@@ -424,5 +477,85 @@ function UpdateNOrder(id, value) {
       in_id: rawdata[id].in_id,
       out_id: rawdata[id].out_id
     };
+  }
+}
+
+function DeleteN(id) {
+  if (newdata[id]) {
+    newdata[id].belongto_pid = '0';
+  } else {
+    newdata[id] = {
+      nid: id,
+      order: rawdata[id].order,
+      belongto_pid: '0',
+      in_id: rawdata[id].in_id,
+      out_id: rawdata[id].out_id
+    };
+  }
+
+  // Update order values correctly
+  FixNOrderValues();
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function MoveUpN(id) {
+  const order_to_change = Aquire(id).order;
+  if (order_to_change <= 0) {
+    return;
+  }
+
+  ns.forEach(n => {
+    if (n.order == order_to_change - 1) {
+      // Move down (++)
+      UpdateNOrder(n.nid, order_to_change);
+    } else if (n.order == order_to_change) {
+      // Move up (--)
+      UpdateNOrder(n.nid, order_to_change - 1);
+    }
+  });
+
+  UpdateTables();
+  DisplayWorkflow();
+
+  console.log(ns);
+}
+
+function MoveDownN(id) {
+  const order_to_change = Aquire(id).order;
+  if (order_to_change >= ans.length - 1) {
+    return;
+  }
+  
+  ns.forEach(n => {
+    if (n.order == order_to_change) {
+      // Move down (++)
+      UpdateNOrder(n.nid, order_to_change + 1);
+    } else if (n.order == order_to_change + 1) {
+      // Move up (--)
+      UpdateNOrder(n.nid, order_to_change);
+    }
+  });
+
+  UpdateTables();
+  DisplayWorkflow();
+
+  console.log(ns);
+}
+
+function EditProcess(id, value, field) {
+  if (newdata[id]) {
+    newdata[id][field] = value;
+  } else {
+    newdata[id] = {
+      pid: id,
+      process: rawdata[id].process,
+      owner: rawdata[id].owner,
+      manager: rawdata[id].manager,
+      status: rawdata[id].status,
+      comment: rawdata[id].comment
+    };
+    newdata[id][field] = value;
   }
 }
