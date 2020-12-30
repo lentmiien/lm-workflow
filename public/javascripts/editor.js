@@ -50,12 +50,11 @@ function LoadAnsNs() {
   Object.keys(newdata).forEach(key => {
     if (newdata[key].anid && newdata[key].belongto_pid == pid) {
       ans.push(newdata[key]);
-      donekeys.push(key);
     }
     if (newdata[key].nid && newdata[key].belongto_pid == pid) {
       ns.push(newdata[key]);
-      donekeys.push(key);
     }
+    donekeys.push(key);
   });
   Object.keys(rawdata).forEach(key => {
     if (donekeys.indexOf(key) == -1) {
@@ -149,6 +148,24 @@ function UpdateTables() {
       pbselect.append(pboption);
     });
     cell.append(pbselect);
+    // Delete / Move up/down buttons
+    const btndiv = document.createElement('div');
+    const delbtn = document.createElement('button');
+    delbtn.setAttribute('class', 'btn btn-danger');
+    delbtn.setAttribute('onclick', `DeleteAN("${an.anid}")`);
+    delbtn.innerText = 'Delete';
+    const upbtn = document.createElement('button');
+    upbtn.setAttribute('class', 'btn btn-primary');
+    upbtn.setAttribute('onclick', `MoveUpAN("${an.anid}")`);
+    upbtn.innerText = 'Up';
+    const downbtn = document.createElement('button');
+    downbtn.setAttribute('class', 'btn btn-primary');
+    downbtn.setAttribute('onclick', `MoveDownAN("${an.anid}")`);
+    downbtn.innerText = 'Down';
+    btndiv.append(delbtn);
+    btndiv.append(upbtn);
+    btndiv.append(downbtn);
+    cell.append(btndiv);
     content.append(cell);
     cell = document.createElement('td');
     const allout = an.out_ids.split(',');
@@ -293,4 +310,119 @@ function UpdateProcessedBy(id, value) {
 
   UpdateTables();
   DisplayWorkflow();
+}
+
+function DeleteAN(id) {
+  if (newdata[id]) {
+    newdata[id].belongto_pid = '0';
+  } else {
+    newdata[id] = {
+      anid: id,
+      order: rawdata[id].order,
+      belongto_pid: '0',
+      content_pid: rawdata[id].content_pid,
+      content_aid: rawdata[id].content_aid,
+      in_id: rawdata[id].in_id,
+      out_ids: rawdata[id].out_ids,
+      processedby: rawdata[id].processedby
+    };
+  }
+
+  // Update order values correctly
+  FixANOrderValues();
+
+  // Remove any network that was connected to this node
+  const ids = newdata[id].out_ids.split(',');
+  ids.push(newdata[id].in_id);
+  RemoveNetworkContainingIds(ids);
+
+  console.log(newdata);
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function MoveUpAN(id) {}
+
+function MoveDownAN(id) {}
+
+function FixANOrderValues() {
+  // ans
+  let i = 0;
+  ans.forEach(an => {
+    if (Aquire(an.anid).belongto_pid == pid) {
+      if (an.order != i) {
+        UpdateANOrder(an.anid, i);
+      }
+      i++;
+    }
+  });
+}
+
+function UpdateANOrder(id, value) {
+  if (newdata[id]) {
+    newdata[id].order = value;
+  } else {
+    newdata[id] = {
+      anid: id,
+      order: value,
+      belongto_pid: rawdata[id].belongto_pid,
+      content_pid: rawdata[id].content_pid,
+      content_aid: rawdata[id].content_aid,
+      in_id: rawdata[id].in_id,
+      out_ids: rawdata[id].out_ids,
+      processedby: rawdata[id].processedby
+    };
+  }
+}
+
+function RemoveNetworkContainingIds(ids) {
+  ns.forEach(n => {
+    if (ids.indexOf(n.in_id) >= 0 || ids.indexOf(n.out_id) >= 0) {
+      RemoveNetwork(n.nid);
+    }
+  });
+  // Update order values correctly
+  FixNOrderValues();
+}
+
+function RemoveNetwork(id) {
+  if (newdata[id]) {
+    newdata[id].belongto_pid = '0';
+  } else {
+    newdata[id] = {
+      nid: id,
+      order: rawdata[id].order,
+      belongto_pid: '0',
+      in_id: rawdata[id].in_id,
+      out_id: rawdata[id].out_id
+    };
+  }
+}
+
+function FixNOrderValues() {
+  // ns
+  let i = 0;
+  ns.forEach(n => {
+    if (Aquire(n.nid).belongto_pid == pid) {
+      if (n.order != i) {
+        UpdateNOrder(n.nid, i);
+      }
+      i++;
+    }
+  });
+}
+
+function UpdateNOrder(id, value) {
+  if (newdata[id]) {
+    newdata[id].order = value;
+  } else {
+    newdata[id] = {
+      nid: id,
+      order: value,
+      belongto_pid: rawdata[id].belongto_pid,
+      in_id: rawdata[id].in_id,
+      out_id: rawdata[id].out_id
+    };
+  }
 }
