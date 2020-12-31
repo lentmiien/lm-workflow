@@ -19,8 +19,8 @@ function DisplayWorkflow() {
   const vlane = [];
 
   ans.forEach(an => {
-    if (lanes.indexOf(rawdata[an.processedby].name) == -1) {
-      lanes.push(rawdata[an.processedby].name);
+    if (lanes.indexOf(Aquire(an.processedby).name) == -1) {
+      lanes.push(Aquire(an.processedby).name);
     }
   });
 
@@ -81,7 +81,7 @@ function DisplayWorkflow() {
   // Draw actions
   const iolist = {};
   ans.forEach((an, cnt) => {
-    const lanenumber = lanes.indexOf(rawdata[an.processedby].name);
+    const lanenumber = lanes.indexOf(Aquire(an.processedby).name);
 
     const g_actionnode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     // Background
@@ -92,7 +92,7 @@ function DisplayWorkflow() {
     actionnodebackground.setAttributeNS(null, 'ry', 10);
     actionnodebackground.setAttributeNS(null, 'width', lanewidth - 10);
     actionnodebackground.setAttributeNS(null, 'height', actionheight);
-    actionnodebackground.setAttributeNS(null, 'fill', an.content_aid == '0' ? '#ffffff' : lanecolor[rawdata[an.processedby].name] ? lanecolor[rawdata[an.processedby].name] : 'orange');
+    actionnodebackground.setAttributeNS(null, 'fill', an.content_aid == '0' ? '#ffffff' : lanecolor[Aquire(an.processedby).name] ? lanecolor[Aquire(an.processedby).name] : 'orange');
     actionnodebackground.setAttributeNS(null, 'stroke', 'black');
     g_actionnode.append(actionnodebackground);
     // Title
@@ -128,9 +128,9 @@ function DisplayWorkflow() {
       Aquire(an.content_aid).content_tids.split(',').forEach(task => {
         if (task.length > 0) {
           if (taskstring.length == 0) {
-            taskstring += rawdata[task].task;
+            taskstring += Aquire(task).task;
           } else {
-            taskstring += '|' + rawdata[task].task;
+            taskstring += '|' + Aquire(task).task;
           }
         }
       });
@@ -168,7 +168,7 @@ function DisplayWorkflow() {
       connectionNode.setAttributeNS(null, 'stroke', 'black');
       g_actionnode.append(connectionNode);
       if (labels) {
-        const textcontent = rawdata[an.content_aid].outputs.split(',');
+        const textcontent = Aquire(an.content_aid).outputs.split(',');
         const outlabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         outlabel.setAttributeNS(null, 'x', lanenumber * (lanewidth + hspacing) + (c + 1) * (lanewidth / (outs.length + 1)));
         outlabel.setAttributeNS(null, 'y', cnt * (actionheight + vspacing) + header + actionheight - 10 - (many_labels ? ((c%2) * 15) : 0));

@@ -587,9 +587,238 @@ function RemoveTaskFromAction(aid, t_index) {
   const tids = Aquire(aid).content_tids.split(',');
   tids.splice(t_index, 1);
   EditAction(aid, tids.join(','), 'content_tids');
+
+  // Check all tasks and update outputs if necessary
+  const outputs = ['OK'];
+  tids.forEach(t => {
+    const outarray = Aquire(t).outputs.split(',');
+    outarray.forEach(oa => {
+      if (outputs.indexOf(oa) == -1) {
+        outputs.push(oa);
+      }
+    });
+  });
+  EditAction(aid, outputs.join(','), 'outputs');
+
+  // Check all action nodes using the action and update output ids if neccessary
+  const del_connections = [];
+  Object.keys(newdata).forEach(key => {
+    if (newdata[key].anid && newdata[key].content_aid == aid) {
+      const out_ids = newdata[key].out_ids.split(',');
+      while (outputs.length < out_ids.length) {
+        del_connections.push(out_ids.pop());
+      }
+      EditActionNode(newdata[key].anid, out_ids.join(','), 'out_ids');
+    }
+  });
+  Object.keys(rawdata).forEach(key => {
+    if (!newdata[key] && rawdata[key].anid && rawdata[key].content_aid == aid) {
+      const out_ids = rawdata[key].out_ids.split(',');
+      while (outputs.length < out_ids.length) {
+        del_connections.push(out_ids.pop());
+      }
+      EditActionNode(rawdata[key].anid, out_ids.join(','), 'out_ids');
+    }
+  });
+
+  // If any outputs were removed, remove associated networks
+  del_connections.forEach(dc => {
+    Object.keys(newdata).forEach(key => {
+      if (newdata[key].nid && (newdata[key].in_id == dc || newdata[key].out_id == dc)) {
+        EditNetwork(newdata[key].nid, '0', 'belongto_pid');
+      }
+    });
+    Object.keys(rawdata).forEach(key => {
+      if (!newdata[key] && rawdata[key].nid && (rawdata[key].in_id == dc || rawdata[key].out_id == dc)) {
+        EditNetwork(rawdata[key].nid, '0', 'belongto_pid');
+      }
+    });
+  });
+
+  UpdateTables();
+  DisplayWorkflow();
 }
 
 function TaskPopup(aid) {
   // Display a fullscreen popup where you can add one task to action (aid)
-  console.log(aid);
+  const popup = document.createElement('div');
+  popup.style.height = '100%';
+  popup.style.width = '100%';
+  popup.style.position = 'fixed';
+  popup.style.zIndex = '1';
+  popup.style.left = '0';
+  popup.style.top = '0';
+  popup.style.backgroundColor = 'rgb(0,0,0,0.9)';
+  popup.id = 'popup';
+  
+  // Add buttons for tasks
+  Object.keys(newdata).forEach(key => {
+    if (newdata[key].tid) {
+      const button = document.createElement('button');
+      button.setAttribute('class', 'btn btn-secondary');
+      button.style.margin = '2px';
+      button.setAttribute('onclick', `AddExistingTaskToAction("${aid}","${newdata[key].tid}")`);
+      button.innerText = newdata[key].task;
+      popup.append(button);
+    }
+  });
+  Object.keys(rawdata).forEach(key => {
+    if (rawdata[key].tid) {
+      const button = document.createElement('button');
+      button.setAttribute('class', 'btn btn-secondary');
+      button.style.margin = '2px';
+      button.setAttribute('onclick', `AddExistingTaskToAction("${aid}","${rawdata[key].tid}")`);
+      button.innerText = rawdata[key].task;
+      popup.append(button);
+    }
+  });
+
+  // Input text + button for creating a new task
+  const new_hr = document.createElement('hr');
+  const new_inputtitle = document.createElement('input');
+  new_inputtitle.setAttribute('placeholder', 'Task title');
+  new_inputtitle.id = 'inputtitle';
+  new_inputtitle.style.width = '30%';
+  const new_inputoutputs = document.createElement('input');
+  new_inputoutputs.setAttribute('placeholder', 'Second output,Third output,...');
+  new_inputoutputs.id = 'inputoutputs';
+  const new_submitbutton = document.createElement('button');
+  new_submitbutton.setAttribute('class', 'btn btn-secondary');
+  new_submitbutton.innerText = 'Save & Add';
+  new_submitbutton.setAttribute('onclick', `AddNewTaskToAction("${aid}")`);
+  new_submitbutton.style.width = '30%';
+  new_submitbutton.style.display = 'inline';
+  popup.append(new_hr);
+  popup.append(new_inputtitle);
+  popup.append(new_inputoutputs);
+  popup.append(new_submitbutton);
+
+  // Cancel button
+  const cancel_hr = document.createElement('hr');
+  const cancel_button = document.createElement('button');
+  cancel_button.setAttribute('class', 'btn btn-danger');
+  cancel_button.style.margin = '2px';
+  cancel_button.setAttribute('onclick', `ClosePopup()`);
+  cancel_button.innerText = 'Cancel';
+  popup.append(cancel_hr);
+  popup.append(cancel_button);
+
+  document.body.append(popup);
+}
+
+function AddExistingTaskToAction(aid, tid) {
+  // Add task to task list
+  const tasks = Aquire(aid).content_tids.split(',');
+  if (Aquire(tasks[0])) {
+    tasks.push(tid);
+  } else {
+    tasks[0] = tid;
+  }
+  EditAction(aid, tasks.join(','), 'content_tids');
+
+  // Check all tasks and update outputs if necessary
+  const outputs = ['OK'];
+  tasks.forEach(t => {
+    const outarray = Aquire(t).outputs.split(',');
+    outarray.forEach(oa => {
+      if (outputs.indexOf(oa) == -1) {
+        outputs.push(oa);
+      }
+    });
+  });
+  EditAction(aid, outputs.join(','), 'outputs');
+
+  // Check all action nodes using the action and update output ids if neccessary
+  Object.keys(newdata).forEach(key => {
+    if (newdata[key].anid && newdata[key].content_aid == aid) {
+      const out_ids = newdata[key].out_ids.split(',');
+      let start_id = Date.now();
+      while (outputs.length > out_ids.length) {
+        out_ids.push(start_id.toString());
+        start_id++;
+      }
+      EditActionNode(newdata[key].anid, out_ids.join(','), 'out_ids');
+    }
+  });
+  Object.keys(rawdata).forEach(key => {
+    if (!newdata[key] && rawdata[key].anid && rawdata[key].content_aid == aid) {
+      const out_ids = rawdata[key].out_ids.split(',');
+      let start_id = Date.now();
+      while (outputs.length > out_ids.length) {
+        out_ids.push(start_id.toString());
+        start_id++;
+      }
+      EditActionNode(rawdata[key].anid, out_ids.join(','), 'out_ids');
+    }
+  });
+
+  // If any outputs were removed, remove associated networks
+  // Does not occur when adding tasks
+
+  // Hide popup
+  ClosePopup();
+
+  UpdateTables();
+  DisplayWorkflow();
+}
+
+function EditTask(id, value, field) {
+  if (!newdata[id]) {
+    newdata[id] = {
+      tid: id,
+      task: rawdata[id].task,
+      outputs: rawdata[id].outputs
+    };
+  }
+  newdata[id][field] = value;
+}
+
+function EditActionNode(id, value, field) {
+  if (!newdata[id]) {
+    newdata[id] = {
+      anid: rawdata[id].anid,
+      order: rawdata[id].order,
+      belongto_pid: rawdata[id].belongto_pid,
+      content_pid: rawdata[id].content_pid,
+      content_aid: rawdata[id].content_aid,
+      in_id: rawdata[id].in_id,
+      out_ids: rawdata[id].out_ids,
+      processedby: rawdata[id].processedby
+    };
+  }
+  newdata[id][field] = value;
+}
+
+function EditNetwork(id, value, field) {
+  if (!newdata[id]) {
+    newdata[id] = {
+      nid: rawdata[id].nid,
+      order: rawdata[id].order,
+      belongto_pid: rawdata[id].belongto_pid,
+      in_id: rawdata[id].in_id,
+      out_id: rawdata[id].out_id
+    };
+  }
+  newdata[id][field] = value;
+}
+
+function ClosePopup() {
+  const element = document.getElementById('popup');
+  element.parentNode.removeChild(element);
+}
+
+function AddNewTaskToAction(aid) {
+  const title = document.getElementById('inputtitle').value;
+  const outputs = document.getElementById('inputoutputs').value;
+
+  const newID = Date.now();
+  newdata[newID.toString()] = {
+    tid: newID.toString(),
+    task: title,
+    outputs: 'OK' + (outputs.length > 0 ? ',' + outputs : '')
+  }
+
+  AddExistingTaskToAction(aid, newID.toString());
+
+  ClosePopup();
 }
