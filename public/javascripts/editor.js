@@ -28,9 +28,23 @@ let cnt = 0;
 let in_ids = [];
 let out_ids = [];
 
-function SaveProcess() {
+async function SaveProcess() {
   // Save data to server
   // POST: /saveprocess
+  const response = await fetch('/saveprocess', {
+    method: 'POST',
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(newdata)
+  });
+  const resp_data = await response.json();
+  if (resp_data.status == 'OK') {
+    window.open(`/update?pid=${pid}`, '_self');
+  } else {
+    alert(resp_data.status);
+  }
 }
 
 let gs = [];

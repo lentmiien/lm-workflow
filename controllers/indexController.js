@@ -137,20 +137,24 @@ exports.update = async (req, res) => {
   });
   data['ActionNodes'].forEach(an => {
     if (tmp_actions[an.content_aid]) {
-      output['processes'][an.belongto_pid].actionNodes.push({
-        action: tmp_actions[an.content_aid],
-        in_id: an.in_id,
-        out_ids: an.out_ids,
-        processedby: output['groups'][an.processedby].groupName
-      });
+      if (an.belongto_pid != '0') {
+        output['processes'][an.belongto_pid].actionNodes.push({
+          action: tmp_actions[an.content_aid],
+          in_id: an.in_id,
+          out_ids: an.out_ids,
+          processedby: output['groups'][an.processedby].groupName
+        });
+      }
     } else {
-      output['processes'][an.belongto_pid].actionNodes.push({
-        process: output['processes'][an.content_pid],
-        pid: an.content_pid,
-        in_id: an.in_id,
-        out_ids: an.out_ids,
-        processedby: output['processes'][an.content_pid].actionNodes[0].processedby
-      });
+      if (an.belongto_pid != '0') {
+        output['processes'][an.belongto_pid].actionNodes.push({
+          process: output['processes'][an.content_pid],
+          pid: an.content_pid,
+          in_id: an.in_id,
+          out_ids: an.out_ids,
+          processedby: output['processes'][an.content_pid].actionNodes[0].processedby
+        });
+      }
     }
   });
   data['Network'].sort((a, b) => {
@@ -163,13 +167,19 @@ exports.update = async (req, res) => {
     }
   });
   data['Network'].forEach(n => {
-    output['processes'][n.belongto_pid].network.push({
-      in_id: n.in_id,
-      out_id: n.out_id
-    });
+    if (n.belongto_pid != '0') {
+      output['processes'][n.belongto_pid].network.push({
+        in_id: n.in_id,
+        out_id: n.out_id
+      });
+    }
   });
 
-  res.redirect('/');
+  if (req.query.pid) {
+    res.redirect(`/processdetails?pid=${req.query.pid}`);
+  } else {
+    res.redirect('/');
+  }
 };
 
 exports.processdetails = (req, res) => {
@@ -180,7 +190,50 @@ exports.processeditor = (req, res) => {
   res.render('editor', { rawdata, pid: req.query.pid ? req.query.pid : Date.now() });
 };
 
-exports.saveprocess = (req, res) => {
-  const process_id_to_save = 'dummy';
-  res.json({ status: 'SAVED', pid: process_id_to_save });
+exports.saveprocess = async (req, res) => {
+  // Update data
+  const doc = new GoogleSpreadsheet(process.env.GSHEET_DOC_ID);
+  await doc.useServiceAccountAuth(creds);
+  await doc.loadInfo();
+  const processed_ids = [];
+  let i = -1;
+  for (const sheetName of sheetNames) {
+    i++;
+    const sheet = doc.sheetsByIndex[i];
+    const rows_raw = await sheet.getRows();
+    rows_raw.forEach(row => {
+      const thisID = row[structure[i][0]];
+      if (req.body[thisID]) {
+        // Update
+        structure[i].forEach(sl => {
+          row[sl] = req.body[thisID][sl];
+        });
+        row.save();
+        processed_ids.push(thisID);
+      }
+    });
+  };
+
+  // Add new data
+  i = -1;
+  for (const sheetName of sheetNames) {
+    i++;
+    const sheet = doc.sheetsByIndex[i];
+    Object.keys(req.body).forEach(key => {
+      if (processed_ids.indexOf(key) == -1) {
+        // Check if entry belongs to current sheet
+        if (req.body[key][structure[i][0]]) {
+          // Save a new entry (row)
+          const savedata = {};
+          structure[i].forEach(sl => {
+            savedata[sl] = req.body[key][sl];
+          });
+          sheet.addRow(savedata);
+          processed_ids.push(key);
+        }
+      }
+    });
+  };
+
+  res.json({ status: 'OK' });
 };
