@@ -219,20 +219,24 @@ exports.saveprocess = async (req, res) => {
   for (const sheetName of sheetNames) {
     i++;
     const sheet = doc.sheetsByIndex[i];
+    const savedata = [];
     Object.keys(req.body).forEach(key => {
       if (processed_ids.indexOf(key) == -1) {
         // Check if entry belongs to current sheet
         if (req.body[key][structure[i][0]]) {
           // Save a new entry (row)
-          const savedata = {};
+          const sdata = {};
           structure[i].forEach(sl => {
-            savedata[sl] = req.body[key][sl];
+            sdata[sl] = req.body[key][sl];
           });
-          sheet.addRow(savedata);
+          savedata.push(sdata)
           processed_ids.push(key);
         }
       }
     });
+    if (savedata.length > 0) {
+      sheet.addRows(savedata);
+    }
   };
 
   res.json({ status: 'OK' });

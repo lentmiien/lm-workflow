@@ -2,7 +2,7 @@ const users = JSON.parse(document.getElementById('users').innerHTML);
 const groups = JSON.parse(document.getElementById('groups').innerHTML);
 const updates = {};
 
-function SaveUpdates() {
+async function SaveUpdates() {
   // Save data to server
   // POST: /saveprocess
   const response = await fetch('/saveprocess', {
