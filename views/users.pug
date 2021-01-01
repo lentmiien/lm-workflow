@@ -1,0 +1,61 @@
+extends layout
+
+block content
+  .row
+    .col
+      h1 User/Group data
+  .row
+    .col
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th(span='col') User
+            th(span='col') In groups
+        tbody#utbody
+          each key in Object.keys(users)
+            tr
+              td= users[key].name
+              td
+                each group in users[key].groups
+                  div= group
+                div.new(id=key)
+                div
+                  select.form-control.user(onchange=`AddUGconnection("${key}",this.value)`)
+                    option(value='') Add to group
+                    each okey in Object.keys(groups)
+                      option(value=okey)= groups[okey].name
+      .input-group
+        input#uname.form-control(type="text", name="uname", placeholder="Name of new user")
+        .input-group-append
+          button.btn.btn-primary(onclick="AddNewUser()") Add user
+    .col
+      table.table.table-dark.table-striped
+        thead
+          tr
+            th(span='col') Group
+            th(span='col') Users in group
+        tbody#gtbody
+          each key in Object.keys(groups)
+            tr
+              td= groups[key].name
+              td
+                each user in groups[key].users
+                  div= user
+                div.new(id=key)
+                div
+                  select.form-control.group(onchange=`AddUGconnection(this.value,"${key}")`)
+                    option(value='') Add user
+                    each ukey in Object.keys(users)
+                      option(value=ukey)= users[ukey].name
+      .input-group
+        input#gname.form-control(type="text", name="gname", placeholder="Name of new group")
+        .input-group-append
+          button.btn.btn-primary(onclick="AddNewGroup()") Add group
+  .row
+    .col
+      button.btn.btn-warning(onclick="SaveUpdates()") Save
+  .hidden_
+    h2 Debug data
+    pre#users= JSON.stringify(users, null, 2)
+    pre#groups= JSON.stringify(groups, null, 2)
+  script(src="/javascripts/user.js")

@@ -237,3 +237,31 @@ exports.saveprocess = async (req, res) => {
 
   res.json({ status: 'OK' });
 };
+
+exports.users = (req, res) => {
+  const users = {};
+  const groups = {};
+
+  // Populate data
+  Object.keys(rawdata).forEach(key => {
+    if (rawdata[key].uid) {
+      users[key] = rawdata[key];
+      users[key]['groups'] = [];
+    }
+    if (rawdata[key].gid) {
+      groups[key] = rawdata[key];
+      groups[key]['users'] = [];
+    }
+  });
+
+  // Link data
+  Object.keys(rawdata).forEach(key => {
+    if (rawdata[key].ugid) {
+      // user_id, group_id
+      users[rawdata[key].user_id].groups.push(groups[rawdata[key].group_id].name);
+      groups[rawdata[key].group_id].users.push(users[rawdata[key].user_id].name);
+    }
+  });
+
+  res.render('users', { users, groups });
+};
