@@ -92,7 +92,9 @@ exports.update = async (req, res) => {
     tmp_users[user.uid] = user.name;
   });
   data['UrelG'].forEach(rel => {
-    output['groups'][rel.group_id].members.push(tmp_users[rel.user_id]);
+    if (tmp_users[rel.user_id]) {
+      output['groups'][rel.group_id].members.push(tmp_users[rel.user_id]);
+    }
   });
 
   output['processes'] = {};
@@ -251,10 +253,12 @@ exports.users = (req, res) => {
     if (rawdata[key].uid) {
       users[key] = rawdata[key];
       users[key]['groups'] = [];
+      users[key]['ugids'] = [];
     }
     if (rawdata[key].gid) {
       groups[key] = rawdata[key];
       groups[key]['users'] = [];
+      groups[key]['ugids'] = [];
     }
   });
 
@@ -262,8 +266,12 @@ exports.users = (req, res) => {
   Object.keys(rawdata).forEach(key => {
     if (rawdata[key].ugid) {
       // user_id, group_id
-      users[rawdata[key].user_id].groups.push(groups[rawdata[key].group_id].name);
-      groups[rawdata[key].group_id].users.push(users[rawdata[key].user_id].name);
+      if (groups[rawdata[key].group_id] && users[rawdata[key].user_id]) {
+        users[rawdata[key].user_id].groups.push(groups[rawdata[key].group_id].name);
+        groups[rawdata[key].group_id].users.push(users[rawdata[key].user_id].name);
+        users[rawdata[key].user_id].ugids.push(key);
+        groups[rawdata[key].group_id].ugids.push(key);
+      }
     }
   });
 

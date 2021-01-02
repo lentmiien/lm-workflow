@@ -123,3 +123,18 @@ function AddNewGroup() {
   </td>
 </tr>`;
 }
+
+function DeleteUGID(ugid_to_remove) {
+  const delelements = document.getElementsByClassName(ugid_to_remove);
+  while (delelements.length > 0) {
+    delelements[0].setAttribute('class', 'delete');
+  }
+
+  if (!updates[ugid_to_remove]) {
+    updates[ugid_to_remove] = {
+      ugid: ugid_to_remove,
+      user_id: '0',
+      group_id: '0'
+    }
+  }
+}

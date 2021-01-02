@@ -33,3 +33,10 @@ body {
   padding: 3px;
   background-color: rgba(255,255,0,0.1);
 }
+
+.delete {
+  border: 1px dashed red;
+  border-radius: 5px;
+  padding: 3px;
+  background-color: rgba(255,0,0,0.1);
+}

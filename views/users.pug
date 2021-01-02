@@ -16,8 +16,10 @@ block content
             tr
               td= users[key].name
               td
-                each group in users[key].groups
-                  div= group
+                each group, index in users[key].groups
+                  div(class=users[key].ugids[index])= group
+                    |  
+                    button.btn.btn-danger(onclick=`DeleteUGID("${users[key].ugids[index]}")`) X
                 div.new(id=key)
                 div
                   select.form-control.user(onchange=`AddUGconnection("${key}",this.value)`)
@@ -39,8 +41,10 @@ block content
             tr
               td= groups[key].name
               td
-                each user in groups[key].users
-                  div= user
+                each user, index in groups[key].users
+                  div(class=groups[key].ugids[index])= user
+                    |  
+                    button.btn.btn-danger(onclick=`DeleteUGID("${groups[key].ugids[index]}")`) X
                 div.new(id=key)
                 div
                   select.form-control.group(onchange=`AddUGconnection(this.value,"${key}")`)
@@ -54,7 +58,7 @@ block content
   .row
     .col
       button.btn.btn-warning(onclick="SaveUpdates()") Save
-  .hidden_
+  .hidden
     h2 Debug data
     pre#users= JSON.stringify(users, null, 2)
     pre#groups= JSON.stringify(groups, null, 2)
